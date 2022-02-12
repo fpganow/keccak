@@ -1,0 +1,20 @@
+@startuml SHA-3 State Machine
+
+title SHA-3 State Machine
+
+state "Wait for Start" as Wait_for_Start
+state "Read Blocks" as Read_Blocks
+state "Read Remainder" as Read_Remainder
+state "Keccak" as Keccak
+state "Send Result" as Send_Result
+
+Wait_for_Start --> Read_Blocks
+Read_Blocks --> Read_Remainder
+Read_Blocks -> Keccak
+Keccak -> Read_Blocks
+Read_Remainder --> Send_Result
+Read_Remainder -> Keccak
+Keccak -> Read_Remainder 
+Send_Result --> Wait_for_Start
+
+@enduml
