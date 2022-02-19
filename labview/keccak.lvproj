@@ -805,7 +805,6 @@ set_property IOSTANDARD LVCMOS25 [get_ports {Si570Clkn}]
 				<Item Name="vi.lib" Type="Folder">
 					<Item Name="lvSimController.dll" Type="Document" URL="/&lt;vilib&gt;/rvi/Simulation/lvSimController.dll"/>
 				</Item>
-				<Item Name="Step.4.5.6.7.Inputs.ctl" Type="VI" URL="../host.impl/Step.4.5.6.7.Inputs.ctl"/>
 			</Item>
 			<Item Name="Build Specifications" Type="Build">
 				<Item Name="keccak.fpga.top" Type="{F4C5E96F-7410-48A5-BB87-3559BC9B167F}">
