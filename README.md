@@ -14,3 +14,5 @@ NI High-Speed Serial PXIe-6592R used for demonstration purposes and has the foll
 - Package: ffg900
 
 
+**To Use from Vivado see this VHDL wrapper**
+https://github.com/fpganow/keccak/blob/main/labview/ip_export/NiFpgaIPWrapper_keccak_ip_fifo_control_export.vhd
