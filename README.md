@@ -5,8 +5,14 @@ Based on the implementation of Keccak found in the ethash library here:
 https://github.com/chfast/ethash/blob/master/lib/keccak/keccak.c
 
 
-LabVIEW 2021 32-bit
+*LabVIEW 2021 64-bit*
 
-NI CompactRIO version 21.0
+NI High-Speed Serial PXIe-6592R used for demonstration purposes and has the following resources:
+- Family: Kintex-7
+- Type: xc7k410t
+- Speed Grade: -2
+- Package: ffg900
 
-https://www.ni.com/en-us/support/downloads/drivers/download.ni-compactrio.html#409637
+
+**To Use from Vivado see this VHDL wrapper**
+https://github.com/fpganow/keccak/blob/main/labview/ip_export/NiFpgaIPWrapper_keccak_ip_fifo_control_export.vhd
