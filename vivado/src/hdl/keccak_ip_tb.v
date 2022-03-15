@@ -39,46 +39,32 @@ module keccak_ip_tb;
         #duty_cycle;
     end
 
-    // Output indicators
-//    wire [0:0] out_data_ready;
-//    wire [0:0] out_parms_ready;
-//    wire [0:0] out_results_valid;
-//    wire [63:0] out_results;
-
-//    // Input controls
-//    reg  [0:0] in_read_results;
-//    reg [63:0] in_parms;
-//    reg  [0:0] in_parms_valid;
-//    reg [63:0] in_data;
-//    reg  [0:0] in_data_valid;
-
-    // Input Controls
+     // Input Controls
+    reg  [ 0:0] in_reset;
     reg  [ 0:0] in_ts_data_valid;
     reg  [63:0] in_ts_data_element;
     reg  [ 0:0] in_ts_parms_valid;
     reg  [63:0] in_ts_parms_element;
     reg  [ 0:0] in_ts_results_ready;
-    reg  [ 0:0] in_reset;
 
     // Output Indicators
     wire  [ 0:0] out_ts_data_ready;
     wire  [ 0:0] out_ts_parms_ready;
     wire  [ 0:0] out_ts_results_valid;
     wire  [63:0] out_ts_results_element;
-
-    NiFpgaIPWrapper_keccak_ip_fifo_control_export_ip UUT (
+    NiFpgaIPWrapper_keccak_ip_export UUT (
         .reset(0),
         .enable_in(1),
         .enable_out(),
         .enable_clr(0),
-        .ctrlind_00_TS_DATA_Valid(in_ts_data_valid),
-        .ctrlind_01_TS_DATA_Element(in_ts_data_element),
-        .ctrlind_02_TS_PARMS_Valid(in_ts_parms_valid),
-        .ctrlind_03_TS_PARMS_Element(in_ts_parms_element),
-        .ctrlind_04_TS_RESULTS_Ready(in_ts_results_ready),
-        .ctrlind_05_Reset(in_reset),
-        .ctrlind_06_TS_DATA_Ready(out_ts_data_ready),
-        .ctrlind_07_TS_PARMS_Ready(out_ts_parms_ready),
+        .ctrlind_00_Reset(in_reset),
+        .ctrlind_01_TS_DATA_Valid(in_ts_data_valid),
+        .ctrlind_02_TS_DATA_Element(in_ts_data_element),
+        .ctrlind_04_TS_PARMS_Valid(in_ts_parms_valid),
+        .ctrlind_05_TS_PARMS_Element(in_ts_parms_element),
+        .ctrlind_07_TS_RESULTS_Ready(in_ts_results_ready),
+        .ctrlind_03_TS_DATA_Ready(out_ts_data_ready),
+        .ctrlind_06_TS_PARMS_Ready(out_ts_parms_ready),
         .ctrlind_08_TS_RESULTS_Valid(out_ts_results_valid),
         .ctrlind_09_TS_RESULTS_Element(out_ts_results_element),
         .Clk40(clk)
@@ -93,8 +79,9 @@ module keccak_ip_tb;
     reg[63:0] test_data;
 
     reg[31:0] test_size;
-    reg[64 * 4:0] exp_hash_256;
-    reg[64 * 8:0] exp_hash_512;
+    reg[(64 * 4) - 1:0] exp_hash_256;
+    reg [63:0] exp_hash_256_b [3:0];
+    reg[(64 * 8) - 1:0] exp_hash_512;
 
     initial
     begin
@@ -106,36 +93,19 @@ module keccak_ip_tb;
         in_ts_data_element = 64'b0;
         in_ts_data_valid = 1'b0;
 
-        #(period * 10)
-        // Now wait for UUT to say it is ready for a command
-        // (and ignore the initial value which is usually 1)
-        // * 10 = 5 clock cycles
-        #period;
-        in_reset = 1'b1;
+        #(period * 5)
 
-        #period;
-        in_reset = 1'b0;
-        
-        // Extra reset
-        #(period * 5);
+        // Reset the IP
         in_reset = 1'b1;
         #period;
-        in_reset = 1'b0;
 
-        #(period * 5);
+        in_reset = 1'b0;
+        #(period * 2);
 
         // Wait for IP to be ready
         wait(out_ts_data_ready);
         wait(out_ts_parms_ready);
 
-        in_ts_parms_element = {32'd512, 32'd0};
-        in_ts_parms_valid = 1'b1;
-        #period;
-
-        in_ts_parms_valid = 1'b0;
-        in_ts_results_ready = 1'b1;
-
-        wait(out_ts_results_valid);
         // test_data.dat
         //   6168747345207341
         //   6465727269747320
@@ -160,25 +130,20 @@ module keccak_ip_tb;
             #period;
 
             // Send test size and bits
+
+            // -- START 256 bit
             //in_parms = {test_size, 32'd256};
-            in_ts_parms_element = {32'd256, 32'd0};
+            in_ts_parms_element = {32'd256, test_size};
             in_ts_parms_valid = 1'b1;
             #period;
-
             in_ts_parms_element = 64'd0;
             in_ts_parms_valid = 1'b0;
-
-            wait(out_ts_results_valid);
-            #period;
-            #period;
-            #period;
-            #period;
-            #period;
 
             // Now send in test data for 256 bit
             if (test_size > 0)
             begin
                 i = 0;
+                $fseek(f_data, 0, 0);
                 while (!$feof(f_data) && i < test_size)
                 begin
                     scan_faults = $fscanf(f_data, "%h", test_data);
@@ -189,22 +154,60 @@ module keccak_ip_tb;
 
                     $display("i = ${i}, test_size = ${test_size}");
                     i = i + 8;
-//                    if(i >= test_size)
-//                    begin
-//                        $display("Finished sending test data for test size: ${test_size}");
-//                        i = -1;
-//                    end
                 end
             end
 
             in_ts_data_element = 64'b0;
             in_ts_data_valid = 1'b0;
-            // Now we wait for the results            
-            #period;
             // Say that we are ready for the results
             in_ts_results_ready = 1'b1;
 
+            // Now we wait for the results            
             wait(out_ts_results_valid);
+            {exp_hash_256_b[0], exp_hash_256_b[1], exp_hash_256_b[2], exp_hash_256_b[3]}  = exp_hash_256;
+            #(period * 4);
+            wait(!out_ts_results_valid);
+            // -- END 256 bit
+
+            /*
+            // -- START 512 bit
+            //in_parms = {test_size, 32'd256};
+            in_ts_parms_element = {32'd512, test_size};
+            in_ts_parms_valid = 1'b1;
+            #period;
+            in_ts_parms_element = 64'd0;
+            in_ts_parms_valid = 1'b0;
+
+            // Now send in test data for 256 bit
+            if (test_size > 0)
+            begin
+                i = 0;
+                $fseek(f_data, 0, 0);
+                while (!$feof(f_data) && i < test_size)
+                begin
+                    scan_faults = $fscanf(f_data, "%h", test_data);
+
+                    in_ts_data_element = test_data;
+                    in_ts_data_valid = 1'b1;
+                    #period;
+
+                    $display("i = ${i}, test_size = ${test_size}");
+                    i = i + 8;
+                end
+            end
+
+            in_ts_data_element = 64'b0;
+            in_ts_data_valid = 1'b0;
+            // Say that we are ready for the results
+            in_ts_results_ready = 1'b1;
+
+            // Now we wait for the results            
+            wait(out_ts_results_valid);
+            #(period * 8);
+            // -- END 512 bit
+            */
+
+            #(period * 2);
         end
         $fclose(fptr); // Close file before finish
 
