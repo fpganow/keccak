@@ -3,22 +3,8 @@
 from io import StringIO
 from pathlib import Path
 import sha3
+import shutil
 import sys
-
-#def read_test_text(file_name: str):
-#    text = Path(file_name).read_text()[:-1]
-#
-#    print(f'Calculating Keccak 256 and 512 on {file_name}')
-#    print(f'len(text): "{len(text)}"')
-#    sha = sha3.keccak_256()
-#    print(f'sha.name: {sha.name}')
-#    print(f'sha.digest_size: {sha.digest_size}')
-#
-#
-#    text = bytes(text, encoding='utf-8')
-#    print(f'text: "{text}"')
-#    sha.update(text)
-#    print(f'sha.hexdigest(): {sha.hexdigest()}')
 
 
 def get_sha(data: str, size: int, bits: int) -> str:
@@ -35,7 +21,16 @@ def get_sha(data: str, size: int, bits: int) -> str:
         text = data[0:size]
         text = bytes(text, encoding='utf-8')
         sha.update(text)
-    return sha.hexdigest()
+    hex_digest = sha.hexdigest()
+    # 01 23 45 67 89 ab cd ef => ef cd ab 89 67 45 23 12
+    # c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470
+    #print(f'hex_digest: {hex_digest}')
+    # little_endian := # [c5 d2 46 01 ... 70]
+    little_endian = [ hex_digest[x:x+2] for x in range(0, len(hex_digest), 2) ]
+    # le_grouped = [ [cd d2 46 01 ...], [xx yy zz ...], ... ]
+    le_grouped = [ ''.join(list(reversed(little_endian[x:x+8]))) for x in range(0, len(little_endian), 8) ]
+    # 3c23f7860146d2c5c000....
+    return ''.join(le_grouped)
 
 
 def get_exp_hashes(test_data: str, num_cases: int) -> str:
@@ -64,6 +59,9 @@ in_data_str = Path(in_data_text_file).read_text().rstrip()
 print(f'Writing HEX version of input string to:\n  {in_data_file}\n')
 n = 8
 
+# Little-endian
+# data is "As Estha"
+# gets written as "ahtsE sA"
 in_data = StringIO()
 for line in [ in_data_str[x:x+8] for x in range(0, len(in_data_str), n)]:
     hex_line = line
@@ -78,3 +76,5 @@ exp_hash = get_exp_hashes(in_data_str, 167)
 print(f'Writing expected hashes/results to:\n  {out_data_file}\n')
 Path(out_data_file).write_text(exp_hash)
 
+# Copy generated files to ../vivado/src/data
+shutil.copy2(out_data_file, '../vivado/src/data')

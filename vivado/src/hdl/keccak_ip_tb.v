@@ -117,7 +117,10 @@ module keccak_ip_tb;
         end
 
         // exp_results.dat
-        //   0 c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 0eab42de4c3ceb9235fc91acffe746b29c29a8c366b7c60e4e67c466f36a4304c00fa9caf9d87976ba469bcbe06713b435f091ef2769fb160cdab33d3670680e
+        // mosft significant bit _ _ _ _ least significant bit
+        // le: 0x12345678 is stored as 78 56 34 12
+        // be: 0x12345678 is stored as 12 34 56 78
+        //   0 c5d2460186f7233c9 27e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 0eab42de4c3ceb9235fc91acffe746b29c29a8c366b7c60e4e67c466f36a4304c00fa9caf9d87976ba469bcbe06713b435f091ef2769fb160cdab33d3670680e
         fptr = $fopen("exp_results.dat", "r");
         if(fptr == 0)
         begin
