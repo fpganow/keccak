@@ -167,12 +167,25 @@ module keccak_ip_tb;
 
             // Now we wait for the results            
             wait(out_ts_results_valid);
+
+            // Do I need 
             {exp_hash_256_b[0], exp_hash_256_b[1], exp_hash_256_b[2], exp_hash_256_b[3]}  = exp_hash_256;
-            #(period * 4);
+
+            assert(exp_hash_256_b[0] == out_ts_results_element);
+            #period;
+
+            assert(exp_hash_256_b[1] == out_ts_results_element);
+            #period;
+
+            assert(exp_hash_256_b[2] == out_ts_results_element);
+            #period;
+
+            assert(exp_hash_256_b[3] == out_ts_results_element);
+            #period;
+
             wait(!out_ts_results_valid);
             // -- END 256 bit
 
-            /*
             // -- START 512 bit
             //in_parms = {test_size, 32'd256};
             in_ts_parms_element = {32'd512, test_size};
@@ -208,7 +221,6 @@ module keccak_ip_tb;
             wait(out_ts_results_valid);
             #(period * 8);
             // -- END 512 bit
-            */
 
             #(period * 2);
         end
