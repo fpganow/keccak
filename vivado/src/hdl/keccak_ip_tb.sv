@@ -70,7 +70,6 @@ module keccak_ip_tb;
         .Clk40(clk)
     );
 
-
     integer fptr;
     integer f_data;
     integer scan_faults;
@@ -80,7 +79,6 @@ module keccak_ip_tb;
 
     reg[31:0] test_size;
     reg[(64 * 4) - 1:0] exp_hash_256;
-    reg [63:0] exp_hash_256_b [3:0];
     reg[(64 * 8) - 1:0] exp_hash_512;
 
     initial
@@ -135,6 +133,7 @@ module keccak_ip_tb;
             // Send test size and bits
 
             // -- START 256 bit
+            $display("Test case #%d (256-bit)", test_size);
             //in_parms = {test_size, 32'd256};
             in_ts_parms_element = {32'd256, test_size};
             in_ts_parms_valid = 1'b1;
@@ -155,7 +154,6 @@ module keccak_ip_tb;
                     in_ts_data_valid = 1'b1;
                     #period;
 
-                    $display("i = ${i}, test_size = ${test_size}");
                     i = i + 8;
                 end
             end
@@ -168,25 +166,27 @@ module keccak_ip_tb;
             // Now we wait for the results            
             wait(out_ts_results_valid);
 
-            // Do I need 
-            {exp_hash_256_b[0], exp_hash_256_b[1], exp_hash_256_b[2], exp_hash_256_b[3]}  = exp_hash_256;
+            // ASSERT
+            assert(exp_hash_256[255:192] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (256-bit)", test_size);
 
-            assert(exp_hash_256_b[0] == out_ts_results_element);
             #period;
+            assert(exp_hash_256[191:128] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (256-bit)", test_size);
 
-            assert(exp_hash_256_b[1] == out_ts_results_element);
             #period;
+            assert(exp_hash_256[127:64] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (256-bit)", test_size);
 
-            assert(exp_hash_256_b[2] == out_ts_results_element);
             #period;
-
-            assert(exp_hash_256_b[3] == out_ts_results_element);
-            #period;
+            assert(exp_hash_256[63:0] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (256-bit)", test_size);
 
             wait(!out_ts_results_valid);
             // -- END 256 bit
 
             // -- START 512 bit
+            $display("Test case #%0d (512-bit)", test_size);
             //in_parms = {test_size, 32'd256};
             in_ts_parms_element = {32'd512, test_size};
             in_ts_parms_valid = 1'b1;
@@ -207,7 +207,6 @@ module keccak_ip_tb;
                     in_ts_data_valid = 1'b1;
                     #period;
 
-                    $display("i = ${i}, test_size = ${test_size}");
                     i = i + 8;
                 end
             end
@@ -219,10 +218,42 @@ module keccak_ip_tb;
 
             // Now we wait for the results            
             wait(out_ts_results_valid);
-            #(period * 8);
-            // -- END 512 bit
 
-            #(period * 2);
+            // ASSERT
+            assert(exp_hash_512[511:448] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (512-bit)", test_size);
+            #period;
+
+            assert(exp_hash_512[447:384] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (512-bit)", test_size);
+            #period;
+
+            assert(exp_hash_512[383:320] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (512-bit)", test_size);
+            #period;
+
+            assert(exp_hash_512[319:256] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (512-bit)", test_size);
+            #period;
+
+            assert(exp_hash_512[255:192] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (512-bit)", test_size);
+            #period;
+
+            assert(exp_hash_512[191:128] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (512-bit)", test_size);
+            #period;
+
+            assert(exp_hash_512[127:64] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (512-bit)", test_size);
+            #period;
+
+            assert(exp_hash_512[63:0] == out_ts_results_element)
+            else $fatal("Assertion Failed for test case #%0d (512-bit)", test_size);
+            #period;
+
+            wait(!out_ts_results_valid);
+            // -- END 512 bit
         end
         $fclose(fptr); // Close file before finish
 
