@@ -37,13 +37,13 @@ def get_exp_hashes(test_data: str, num_cases: int) -> str:
     exp_hashes = StringIO()
 
     for size in range(num_cases):
-        #sha224 = get_sha(test_data, size, 224)
+        sha224 = get_sha(test_data, size, 224)
         sha256 = get_sha(test_data, size, 256)
-        #sha384 = get_sha(test_data, size, 384)
+        sha384 = get_sha(test_data, size, 384)
         sha512 = get_sha(test_data, size, 512)
-        exp_hashes.write(f'{size:>3} {sha256} {sha512}\n')
+        exp_hashes.write(f'{size:>3} {sha224} {sha256} {sha384} {sha512}\n')
         #print(f'{size:>3} {sha256} {sha512}')
-        #print(f'{size:>3} {sha224} {sha256} {sha384} {sha512}')
+        print(f'{size:>3} {sha224} {sha256} {sha384} {sha512}')
 
     return exp_hashes.getvalue()
 
@@ -54,7 +54,11 @@ in_data_file = 'test_data.dat'
 print('\n')
 # Read the raw text
 in_data_str = Path(in_data_text_file).read_text().rstrip()
+print(f'Length of input (raw) text: {len(in_data_str)}')
+print(f'first: {in_data_str[0]}')
+print(f'last: {in_data_str[165]}')
 
+print('\n')
 # Generate hex version of raw text
 print(f'Writing HEX version of input string to:\n  {in_data_file}\n')
 n = 8
@@ -76,5 +80,6 @@ exp_hash = get_exp_hashes(in_data_str, 167)
 print(f'Writing expected hashes/results to:\n  {out_data_file}\n')
 Path(out_data_file).write_text(exp_hash)
 
+# 9c a9 48 52 98
 # Copy generated files to ../vivado/src/data
 shutil.copy2(out_data_file, '../vivado/src/data')
