@@ -24,16 +24,17 @@ def get_sha(data: str, size: int, bits: int) -> str:
     elif bits == 512:
         sha = sha3.keccak_512()
 
-    print(f'size: {size}')
+#    print(f'size: {size}')
     if size > 0:
         text = data[0:size]
-        print(f'encoding: {text}')
+#        print(f'encoding: {text}')
         text = bytes(text, encoding='utf-8')
         sha.update(text)
     hex_digest = sha.hexdigest()
     # 01 23 45 67 89 ab cd ef => ef cd ab 89 67 45 23 12
     # c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470
-    print(f'hex_digest:\n{hex_digest}')
+    if bits == 224:
+        print(f'{size:>3} {hex_digest}')
     # little_endian := # [c5 d2 46 01 ... 70]
     little_endian = [ hex_digest[x:x+2] for x in range(0, len(hex_digest), 2) ]
     # le_grouped = [ [cd d2 46 01 ...], [xx yy zz ...], ... ]
@@ -45,18 +46,14 @@ def get_sha(data: str, size: int, bits: int) -> str:
 def get_exp_hashes(test_data: str) -> str:
     exp_hashes = StringIO()
 
-    sha224 = get_sha(test_data, len(test_data), 224)
-    print(f'{len(test_data):>3} {sha224}')
-    import sys; sys.exit(0)
-
     for size in range(len(test_data)+1):
         sha224 = get_sha(test_data, size, 224)
         sha256 = get_sha(test_data, size, 256)
         sha384 = get_sha(test_data, size, 384)
         sha512 = get_sha(test_data, size, 512)
         exp_hashes.write(f'{size:>3} {sha224} {sha256} {sha384} {sha512}\n')
-        #print(f'{size:>3} {sha256} {sha512}')
-        print(f'{size:>3} {sha224} {sha256} {sha384} {sha512}')
+        print(f'{size:>3} {sha224}')
+        #print(f'{size:>3} {sha224} {sha256} {sha384} {sha512}')
 
     return exp_hashes.getvalue()
 
